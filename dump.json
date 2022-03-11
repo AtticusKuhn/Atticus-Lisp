@@ -1,0 +1,117 @@
+[
+    {
+        "type": "sExpression",
+        "values": [
+            {
+                "type": "identifier",
+                "value": "main",
+                "text": "main",
+                "offset": 1,
+                "lineBreaks": 0,
+                "line": 1,
+                "col": 2
+            },
+            {
+                "type": "sExpression",
+                "values": [
+                    {
+                        "type": "identifier",
+                        "value": "+",
+                        "text": "+",
+                        "offset": 7,
+                        "lineBreaks": 0,
+                        "line": 1,
+                        "col": 8
+                    },
+                    {
+                        "type": "number_literal",
+                        "value": 1,
+                        "text": "1",
+                        "offset": 9,
+                        "lineBreaks": 0,
+                        "line": 1,
+                        "col": 10
+                    },
+                    {
+                        "type": "sExpression",
+                        "values": [
+                            {
+                                "type": "identifier",
+                                "value": "*",
+                                "text": "*",
+                                "offset": 12,
+                                "lineBreaks": 0,
+                                "line": 1,
+                                "col": 13
+                            },
+                            {
+                                "type": "number_literal",
+                                "value": 4,
+                                "text": "4",
+                                "offset": 14,
+                                "lineBreaks": 0,
+                                "line": 1,
+                                "col": 15
+                            },
+                            {
+                                "type": "sExpression",
+                                "values": [
+                                    {
+                                        "type": "identifier",
+                                        "value": "/",
+                                        "text": "/",
+                                        "offset": 17,
+                                        "lineBreaks": 0,
+                                        "line": 1,
+                                        "col": 18
+                                    },
+                                    {
+                                        "type": "number_literal",
+                                        "value": 8,
+                                        "text": "8",
+                                        "offset": 19,
+                                        "lineBreaks": 0,
+                                        "line": 1,
+                                        "col": 20
+                                    },
+                                    {
+                                        "type": "number_literal",
+                                        "value": 6,
+                                        "text": "6",
+                                        "offset": 21,
+                                        "lineBreaks": 0,
+                                        "line": 1,
+                                        "col": 22
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "type": "sExpression",
+        "values": [
+            {
+                "type": "identifier",
+                "value": "second",
+                "text": "second",
+                "offset": 29,
+                "lineBreaks": 0,
+                "line": 3,
+                "col": 2
+            },
+            {
+                "type": "string_literal",
+                "value": "hi",
+                "text": "\"hi\"",
+                "offset": 36,
+                "lineBreaks": 0,
+                "line": 3,
+                "col": 9
+            }
+        ]
+    }
+]
