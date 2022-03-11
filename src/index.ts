@@ -113,10 +113,11 @@ const evaluate = (exprToCall: sExpression, prog: program): any => {
         // const compilerInstructions = evaluate(parse(`(compile ${funcName})`)[0], newProg)
         // console.log("compilerInstructions", compilerInstructions)
         // if (compilerInstructions) {
+        console.log("creating a js func")
         const jsfunc = eval(evaluate(wrapWithS(args[0]), prog))
         const params = getParamNames(jsfunc);
 
-        console.log("evaluating js func")
+        console.log("evaluating a js func")
         //@ts-ignore
         return jsfunc(...(params.map((p) => evaluate(prog.names.get(p)?.body, prog), prog)))
         // }
@@ -124,7 +125,7 @@ const evaluate = (exprToCall: sExpression, prog: program): any => {
     const func = prog.names.get(funcName);
     const argumentsContext: Map<string, func> = new Map() // name to value
     if (func) {
-        console.log(`${funcName} has ${func} arugments`)
+        console.log(`${funcName} has ${func.arguments.length} arugments`)
         console.log(prog.names)
         // if (func?.arguments) {
         for (let i = 0; i < func.arguments.length; i++) {
@@ -185,13 +186,18 @@ const callMain: sExpression = {
 const runProgram = (prog: program): string => {
     return evaluate(callMain, prog)
 }
+export const runCompiler = (soureCode: string): any => {
+    const res = parse(soureCode)
+    const program = ASTtoProgram(res)
+    // console.log(program.names.get("main"))
+    return runProgram(program)
+}
 const main = () => {
     const file = fs.readFileSync("./src/example.alisp", "utf-8")
-    const res = parse(file)
-    const program = ASTtoProgram(res)
-    console.log(program.names.get("main"))
-    console.log("runProgram", runProgram(program))
+    console.log(runCompiler(file))
     // console.log(JSON.stringify(paredast, null, 4))
     // fs.writeFileSync("./dump.json", JSON.stringify(paredast, null, 4))
 }
-main()
+if (require.main === module) {
+    main()
+}

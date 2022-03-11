@@ -3,7 +3,13 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
+  "jest": {
+    "testPathIgnorePatterns": [
+      "dist"
+    ]
+  },
   "scripts": {
+    "test-tsc": "tsc && jest",
     "gp": "tsc && nearleyc ./src/porth.ne -o grammar.js",
     "run": "tsc && node ./dist/index.js",
     "all": "tsc && nearleyc ./src/parser.ne -o grammar.js && node ./dist/index.js",
@@ -18,8 +24,10 @@
     "typescript": "^4.4.4"
   },
   "devDependencies": {
+    "@types/jest": "^27.4.1",
     "@types/moo": "^0.5.5",
     "@types/nearley": "^2.11.2",
-    "@types/node": "^16.11.7"
+    "@types/node": "^16.11.7",
+    "jest": "^27.5.1"
   }
 }
