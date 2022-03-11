@@ -1,3 +1,3 @@
-(main (+ 1 (* 4 (/ 8 6))))
-
-(second "hi")
+(succ a (+ a 1))
+(main (succ 150))
+(compile + "(a,b)=>{console.log('a and b are', a,b); return a+b}")

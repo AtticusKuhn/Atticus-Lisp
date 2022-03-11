@@ -14,7 +14,7 @@ export const lexer = moo.compile({
         value: s => Number(s)
     },
     identifier: {
-        match: /[^\s]+/,
+        match: /[^\s\(\)]+/,
     },
 });
 

@@ -1,6 +1,5 @@
-import nearley from "nearley"
 import fs from "fs"
-import { left, right, either, eitherBind } from "./utils"
+import nearley from "nearley"
 // import lexer from "./lexer";
 // import fs from "fs"
 const grammar = require("../grammar.js")
@@ -12,6 +11,13 @@ type tokenData = {
     "lineBreaks": number,
     "line": number,
     "col": number
+}
+const dummyData: tokenData = {
+    "text": "",
+    col: 0,
+    line: 0,
+    lineBreaks: 0,
+    offset: 0
 }
 type AST = sExpression[];
 type sExpression = {
@@ -41,25 +47,19 @@ type func = {
     arguments: { name: string }[],
     body: value,
 }
-function parse(code: string): either<string, AST> {
-    // Parse something!
+function parse(code: string): AST {
     const parser = new nearley.Parser(nearley.Grammar.fromCompiled(grammar));
-    try {
-        parser.feed(code);
-        if (parser.results.length > 1) {
-            for (let i = 0; i < parser.results.length; i++) {
-                console.log("ambiguous parser")
-                // fs.writeFileSync(`./debug/${i}.json`, JSON.stringify(parser.results[i], null, 4))
-            }
-            return left("ambiguous parser")
+    parser.feed(code);
+    if (parser.results.length > 1) {
+        for (let i = 0; i < parser.results.length; i++) {
+            console.log("ambiguous parser")
         }
-        if (parser.results.length === 0) {
-            return left("no parse found")
-        }
-        return right(parser.results[0])
-    } catch (e) {
-        return left(e as string);
+        throw new Error("ambiguous parser")
     }
+    if (parser.results.length === 0) {
+        throw new Error(`no parse found for code "${code}"`)
+    }
+    return parser.results[0]
 }
 const ASTtoProgram = (ast: AST): program => {
     const map = new Map<string, func>();
@@ -87,23 +87,75 @@ const ASTtoProgram = (ast: AST): program => {
         names: map
     }
 }
-const evaluate = (func: func, prog: program): string => {
-
+//@ts-ignore
+const makeIdentifier = (name: string): identifier => ({
+    type: "identifier",
+    value: name,
+    ...dummyData
+})
+const evaluate = (exprToCall: sExpression, prog: program): any => {
+    console.log(`calling ${JSON.stringify(exprToCall, null, 4)}`)
+    const first = exprToCall.values[0];
+    if (first.type === "string_literal" || first.type === "number_literal") {
+        return first
+    }
+    const args = exprToCall.values.slice(1);
+    if (first.type === "identifier") {
+        const funcName = first.value
+        const func = prog.names.get(funcName);
+        if (!func) {
+            const compilerInstructions = evaluate(parse(`(compile ${funcName})`)[0], prog)
+            console.log("compilerInstructions", compilerInstructions)
+            if (compilerInstructions.value) {
+                const jsfunc = eval(compilerInstructions.value)
+                return jsfunc(...(args.map((a) => evaluate(wrapWithS(a), prog))))
+            }
+            throw new Error(`cannot find func. Tried to call a function called "${funcName}", but does not exist in this context`)
+        }
+        const argumentsContext: Map<string, func> = new Map() // name to value
+        for (const arg of args) {
+            if (arg.type === "identifier") {
+                argumentsContext.set(arg.value, {
+                    arguments: [],
+                    body: arg
+                });
+            } else {
+                // throw new Error(`arg must be identifier, it was actually of type ${arg.type}. Arg =  ${JSON.stringify(arg, null, 2)}`)
+            }
+        }
+        const newContext = new Map([...argumentsContext, ...prog.names])
+        const newProg: program = { names: newContext }
+        return evaluate(wrapWithS(func.body), newProg)
+    } else {
+        throw new Error(`cannot call a non-identifier. I tried to call a ${first.type}. Debug info: ${JSON.stringify(first, null, 2)}`)
+    }
 }
+const wrapWithS = (val: value): sExpression => {
+    if (val.type === "sExpression") return val;
+    return {
+        type: "sExpression",
+        values: [val]
+    }
+}
+const callMain: sExpression = {
+    type: "sExpression",
+    values: [{
+        type: "identifier",
+        value: "main",
+        ...dummyData
+    }]
+}
+
 const runProgram = (prog: program): string => {
-    const main = prog.names.get("main")
-    if (!main) throw new Error(`no maiin function deteceted`)
-    return evaluate(main, prog)
+    return evaluate(callMain, prog)
 }
 const main = () => {
     const file = fs.readFileSync("./src/example.alisp", "utf-8")
     const res = parse(file)
-    eitherBind<string, AST, void>((paredast) => {
-        const program = ASTtoProgram(paredast)
-        console.log(program.names.get("main"))
-        console.log(runProgram(program))
-        // console.log(JSON.stringify(paredast, null, 4))
-        // fs.writeFileSync("./dump.json", JSON.stringify(paredast, null, 4))
-    })(res)
+    const program = ASTtoProgram(res)
+    console.log(program.names.get("main"))
+    console.log("runProgram", runProgram(program))
+    // console.log(JSON.stringify(paredast, null, 4))
+    // fs.writeFileSync("./dump.json", JSON.stringify(paredast, null, 4))
 }
 main()
