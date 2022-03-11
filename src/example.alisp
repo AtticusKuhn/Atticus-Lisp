@@ -1,3 +1,9 @@
-(succ a (+ a 500))
-(main (succ 100))
-(+ a b (compile "(a,b)=>{console.log('a and b are', a,b); return a+b}"))
+(succ a 
+    (+ a 500))
+(some-stuff a b c b)
+(main 
+    (if 1 2 3))
+(+ a b 
+    (compile "(a,b)=>{console.log('a and b are', a,b); return a+b}"))
+(if cond iftrue iffalse 
+    (compile "(cond, iftrue, iffalse)=> cond ? iftrue : iffalse"))

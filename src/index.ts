@@ -76,7 +76,7 @@ const ASTtoProgram = (ast: AST): program => {
                         }
                     }
                 }),
-                body: sExp.values[sExp.values.length - 1]
+                body: wrapWithS(sExp.values[sExp.values.length - 1])
             }
             map.set(first.value, func)
         } else {
@@ -118,19 +118,24 @@ const evaluate = (exprToCall: sExpression, prog: program): any => {
 
         console.log("evaluating js func")
         //@ts-ignore
-        return jsfunc(...(params.map((p) => prog.names.get(p), prog)))
+        return jsfunc(...(params.map((p) => evaluate(prog.names.get(p)?.body, prog), prog)))
         // }
     }
     const func = prog.names.get(funcName);
     const argumentsContext: Map<string, func> = new Map() // name to value
     if (func) {
-        console.log(`${funcName} has ${func.arguments.length} arugments`)
+        console.log(`${funcName} has ${func} arugments`)
         console.log(prog.names)
+        // if (func?.arguments) {
         for (let i = 0; i < func.arguments.length; i++) {
             console.log(`setting ${func.arguments[i].name}`)
-            //@ts-ignore
-            argumentsContext.set(func.arguments[i].name, (args[i]))
+            argumentsContext.set(func.arguments[i].name, {
+                arguments: [],
+                body: wrapWithS(args[i])
+            })
         }
+        // }
+
     } else {
         console.log("func doesn't exist for ", funcName)
     }

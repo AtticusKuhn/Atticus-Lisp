@@ -45,7 +45,7 @@ sExpression -> %lParen value_list %rParen {%(d)=>({
     values: d[1],
 })%}
 value_list -> value  {%(d)=>d%}
-    | value %ws value_list {%(d)=>[d[0], ...d[2]]%}
+    | value _ml value_list {%(d)=>[d[0], ...d[2]]%}
 value -> sExpression  {%id%}
     | %number_literal {%id%}
     | %string_literal {%id%}
@@ -57,9 +57,9 @@ _ml -> multi_line_ws_char:+
 
 multi_line_ws_char
     -> %ws
-    |  "\n"
-    | "\t"
-    # | %nl
+    # |  "\n"
+    # | "\t"
+    | %nl
 
 __ -> %ws:+
 
