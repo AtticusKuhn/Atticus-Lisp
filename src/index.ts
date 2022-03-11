@@ -67,7 +67,7 @@ const ASTtoProgram = (ast: AST): program => {
         const first = sExp.values[0];
         if (first.type === "identifier") {
             const func: func = {
-                arguments: sExp.values.slice(1, sExp.values.length - 2).map((val) => {
+                arguments: sExp.values.slice(1, sExp.values.length - 1).map((val) => {
                     if (val.type === "sExpression") {
                         throw new Error(`function argument cannot be s expression`)
                     } else {
@@ -93,42 +93,73 @@ const makeIdentifier = (name: string): identifier => ({
     value: name,
     ...dummyData
 })
+var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
+var ARGUMENT_NAMES = /([^\s,]+)/g;
+function getParamNames(func: Function): string[] {
+    var fnStr = func.toString().replace(STRIP_COMMENTS, '');
+    var result = fnStr.slice(fnStr.indexOf('(') + 1, fnStr.indexOf(')')).match(ARGUMENT_NAMES);
+    if (result === null)
+        result = [];
+    return result;
+}
 const evaluate = (exprToCall: sExpression, prog: program): any => {
     console.log(`calling ${JSON.stringify(exprToCall, null, 4)}`)
     const first = exprToCall.values[0];
-    if (first.type === "string_literal" || first.type === "number_literal") {
-        return first
-    }
+    if (first.type === "string_literal" || first.type === "number_literal") return first.value
     const args = exprToCall.values.slice(1);
-    if (first.type === "identifier") {
-        const funcName = first.value
-        const func = prog.names.get(funcName);
-        if (!func) {
-            const compilerInstructions = evaluate(parse(`(compile ${funcName})`)[0], prog)
-            console.log("compilerInstructions", compilerInstructions)
-            if (compilerInstructions.value) {
-                const jsfunc = eval(compilerInstructions.value)
-                return jsfunc(...(args.map((a) => evaluate(wrapWithS(a), prog))))
-            }
-            throw new Error(`cannot find func. Tried to call a function called "${funcName}", but does not exist in this context`)
-        }
-        const argumentsContext: Map<string, func> = new Map() // name to value
-        for (const arg of args) {
-            if (arg.type === "identifier") {
-                argumentsContext.set(arg.value, {
-                    arguments: [],
-                    body: arg
-                });
-            } else {
-                // throw new Error(`arg must be identifier, it was actually of type ${arg.type}. Arg =  ${JSON.stringify(arg, null, 2)}`)
-            }
-        }
-        const newContext = new Map([...argumentsContext, ...prog.names])
-        const newProg: program = { names: newContext }
-        return evaluate(wrapWithS(func.body), newProg)
-    } else {
-        throw new Error(`cannot call a non-identifier. I tried to call a ${first.type}. Debug info: ${JSON.stringify(first, null, 2)}`)
+    if (first.type !== "identifier") throw new Error(`cannot call a non-identifier. I tried to call a ${first.type}. Debug info: ${JSON.stringify(first, null, 2)}`)
+    const funcName = first.value
+    if (funcName === "compile") {
+        // const compilerInstructions = evaluate(parse(`(compile ${funcName})`)[0], newProg)
+        // console.log("compilerInstructions", compilerInstructions)
+        // if (compilerInstructions) {
+        const jsfunc = eval(evaluate(wrapWithS(args[0]), prog))
+        const params = getParamNames(jsfunc);
+
+        console.log("evaluating js func")
+        //@ts-ignore
+        return jsfunc(...(params.map((p) => prog.names.get(p), prog)))
+        // }
     }
+    const func = prog.names.get(funcName);
+    const argumentsContext: Map<string, func> = new Map() // name to value
+    if (func) {
+        console.log(`${funcName} has ${func.arguments.length} arugments`)
+        console.log(prog.names)
+        for (let i = 0; i < func.arguments.length; i++) {
+            console.log(`setting ${func.arguments[i].name}`)
+            //@ts-ignore
+            argumentsContext.set(func.arguments[i].name, (args[i]))
+        }
+    } else {
+        console.log("func doesn't exist for ", funcName)
+    }
+    for (const arg of args) {
+        if (arg.type === "identifier") {
+            const argval = prog.names.get(arg.value)
+            if (!argval) throw new Error(`cannot find value for the function argument "${arg.value}"`)
+            argumentsContext.set(arg.value, {
+                arguments: [],
+                //@ts-ignore
+                body: argval,//{ type: "number_literal", value: 1 }///evaluate(wrapWithS(arg), prog)
+            });
+        } else {
+
+            // throw new Error(`arg must be identifier, it was actually of type ${arg.type}. Arg =  ${JSON.stringify(arg, null, 2)}`)
+        }
+    }
+    console.log("argumentsContext is", argumentsContext)
+    const newContext = new Map([...argumentsContext, ...prog.names])
+    const newProg: program = { names: newContext }
+    console.log("func is", funcName)
+    if (!func) {
+        console.log(`cannot find func "${funcName}" in`, newProg.names)
+
+        throw new Error(`cannot find func. Tried to call a function called "${funcName}", but does not exist in this context`)
+    }
+    console.log("evaluated body of func")
+    return evaluate(wrapWithS(func.body), newProg)
+
 }
 const wrapWithS = (val: value): sExpression => {
     if (val.type === "sExpression") return val;
