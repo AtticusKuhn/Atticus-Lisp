@@ -1,12 +1,17 @@
-(succ1 a1 
-    (+1 a1 1))
-(succ2 a2 
-    (+2 a2 1))
-(main 
-    (succ1 
-        (succ2 1)))
-(+2 a b 
-    (compile "(a,b)=>{console.log('a and b are', a,b); return a+b}"))
+(= x y (compile "(x,y)=>Number(x===y)"))
+(+ a b (compile "(a,b)=>a+b"))
+(- p q (compile "(p,q)=>p-q"))
 
-(+1 a b 
-    (compile "(a,b)=>{console.log('a and b are', a,b); return a+b}"))
+(if c y n (compile "(c,y,n)=> c ? y : n"))
+
+
+(fib n 
+    (if
+        (= n 1) 1
+        (+ 
+            (fib 
+                (- n 2))
+            (fib 
+                (- n 1)))))
+
+(main (fib 10))

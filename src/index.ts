@@ -102,10 +102,30 @@ function getParamNames(func: Function): string[] {
         result = [];
     return result;
 }
-const evaluate = (exprToCall: sExpression, prog: program): any => {
+const toVal = (x: any): value => {
+    if (typeof x === "number") return {
+        type: "number_literal",
+        value: x,
+        ...dummyData
+    }
+    if (typeof x === "string") return {
+        type: "string_literal",
+        value: x,
+        ...dummyData
+    }
+    if (x?.type) return x;
+    throw new Error(`cannot convert to value ${x} ${JSON.stringify(x)}`)
+}
+const evaluate = (exprToCall: sExpression, prog: program): value => {
     console.log(`calling ${JSON.stringify(exprToCall, null, 4)}`)
-    const first = exprToCall.values[0];
-    if (first.type === "string_literal" || first.type === "number_literal") return first.value
+    // if(exprToCall)
+    let first: value
+    try {
+        first = exprToCall.values[0];
+    } catch {
+        return exprToCall;
+    }
+    if (first.type === "string_literal" || first.type === "number_literal") return first
     const args = exprToCall.values.slice(1);
     if (first.type !== "identifier") throw new Error(`cannot call a non-identifier. I tried to call a ${first.type}. Debug info: ${JSON.stringify(first, null, 2)}`)
     const funcName = first.value
@@ -114,12 +134,23 @@ const evaluate = (exprToCall: sExpression, prog: program): any => {
         // console.log("compilerInstructions", compilerInstructions)
         // if (compilerInstructions) {
         console.log("creating a js func")
-        const jsfunc = eval(evaluate(wrapWithS(args[0]), prog))
+        //@ts-ignore
+        const jsfunc = eval(evaluate(wrapWithS(args[0]), prog).value)
         const params = getParamNames(jsfunc);
 
         console.log("evaluating a js func")
-        //@ts-ignore
-        return jsfunc(...(params.map((p) => evaluate(prog.names.get(p)?.body, prog), prog)))
+        const funcParams = params.map((p) => {
+            const x = prog.names.get(p)
+            if (!x) throw new Error(`cannot get x`)
+            const e = evaluate(wrapWithS(x.body), prog)
+            if (e.type === "sExpression") {
+                throw new Error(`why is it an s expression?`)
+            } else {
+                return e.value
+            }
+        }, prog)
+        console.log("funcParams", funcParams)
+        return toVal(jsfunc(...funcParams));
         // }
     }
     const func = prog.names.get(funcName);
@@ -127,27 +158,33 @@ const evaluate = (exprToCall: sExpression, prog: program): any => {
     if (func) {
         console.log(`${funcName} has ${func.arguments.length} arugments`)
         console.log(prog.names)
+        console.log("names values", prog.names.forEach((k, v) => {
+            console.log(`key ${v} is value`, JSON.stringify(k.body))
+        }));
         // if (func?.arguments) {
         for (let i = 0; i < func.arguments.length; i++) {
             console.log(`setting ${func.arguments[i].name}`)
+            if (argumentsContext.get(func.arguments[i].name) !== undefined) throw new Error(`cannot redefine constant "${func.arguments[i].name}"`)
             argumentsContext.set(func.arguments[i].name, {
                 arguments: [],
-                body: wrapWithS(args[i])
+                body: evaluate(wrapWithS(args[i]), prog)
             })
         }
         // }
 
     } else {
-        console.log("func doesn't exist for ", funcName)
+        // console.log("func doesn't exist for ", funcName)
     }
     for (const arg of args) {
         if (arg.type === "identifier") {
-            const argval = prog.names.get(arg.value)
+            let argval = prog.names.get(arg.value)
             if (!argval) throw new Error(`cannot find value for the function argument "${arg.value}"`)
+            const newarg = evaluate(wrapWithS(argval.body), prog)
+            if (argumentsContext.get(arg.value) !== undefined) throw new Error(`cannot redefine constant "${arg.value}"`)
+
             argumentsContext.set(arg.value, {
                 arguments: [],
-                //@ts-ignore
-                body: argval,//{ type: "number_literal", value: 1 }///evaluate(wrapWithS(arg), prog)
+                body: newarg,//{ type: "number_literal", value: 1 }///evaluate(wrapWithS(arg), prog)
             });
         } else {
 
@@ -183,10 +220,10 @@ const callMain: sExpression = {
     }]
 }
 
-const runProgram = (prog: program): string => {
+const runProgram = (prog: program): value => {
     return evaluate(callMain, prog)
 }
-export const runCompiler = (soureCode: string): any => {
+export const runCompiler = (soureCode: string): value => {
     const res = parse(soureCode)
     const program = ASTtoProgram(res)
     // console.log(program.names.get("main"))

@@ -19,7 +19,28 @@ Addition in Atticus Lisp
 ```
 Note that the "main" function is called. 
 
+Fibonnaci in Atticus Lisp 
+```lisp
+(= x y (compile "(x,y)=>Number(x===y)"))
+(+ a b (compile "(a,b)=>a+b"))
+(- p q (compile "(p,q)=>p-q"))
+
+(if c y n (compile "(c,y,n)=> c ? y : n"))
+
+
+(fib n 
+    (if
+        (= n 1) 1
+        (+ 
+            (fib 
+                (- n 2))
+            (fib 
+                (- n 1)))))
+
+(main (fib 10))
+```
+
+
 
 # Todo
- [ ] fix bug of infinite recursion
- [ ] expand the standard library
+- [ ] expand the standard library
