@@ -44,3 +44,11 @@ Fibonnaci in Atticus Lisp
 
 # Todo
 - [ ] expand the standard library
+- [ ] fix lazy evaluation to avoid infinite loops
+- [ ] add symbols so I can implement booleans so I can implement lazy if
+# Commands
+
+To run the test suite, do 
+`yarn run test`
+To run the compiler, do
+`yarn run run`

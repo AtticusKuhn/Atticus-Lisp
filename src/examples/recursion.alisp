@@ -1,0 +1,15 @@
+(if c z n (compile "(c,y,n)=> {console.log('cyn is', c, z, n); return c ? z : n}"))
+(< x y (compile "(x,y)=>Number(x < y)"))
+(+ a b (compile "(a,b)=>a+b"))
+(- p q (compile "(p,q)=>p-q"))
+(if :true a b a)
+(if :false a b b)
+(rec t
+    (if 
+        (< t 0) 0
+        (+ 1 
+            (rec 
+                (- t 1)))))
+
+(main  
+    (rec 2))

@@ -50,6 +50,7 @@ value -> sExpression  {%id%}
     | %number_literal {%id%}
     | %string_literal {%id%}
     | %identifier {%id%}
+    | %symbol {%id%}
 
 
 __ml -> multi_line_ws_char:*

@@ -25,3 +25,8 @@ test("double succ", () => {
     (main (succ (succ 1)))
     `).value).toBe(3);
 });
+test("hello world", () => {
+    expect(runCompiler(`
+    (main "hello world")
+    `).value).toBe("hello world");
+});
