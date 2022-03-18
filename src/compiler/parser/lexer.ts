@@ -13,12 +13,12 @@ export const lexer = moo.compile({
         match: /[0-9]+(?:\.[0-9]+)?/,
         value: s => Number(s)
     },
-    symbol: {
+    keyword_symbol: {
         match: /:[^\s\(\)]+/,
         value: s => s.slice(1)
     },
     identifier: {
-        match: /[^\s\(\)]+/,
+        match: /[^:\s\(\)]+/,
     },
 });
 

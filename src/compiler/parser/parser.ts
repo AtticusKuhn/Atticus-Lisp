@@ -27,6 +27,8 @@ export type value = sExpression
     | number_literal
     | string_literal
     | identifier
+    | keyword_symbol
+
 export type number_literal = {
     "type": "number_literal",
     "value": number,
@@ -37,6 +39,10 @@ export type string_literal = {
 } & tokenData;
 export type identifier = {
     "type": "identifier",
+    "value": string,
+} & tokenData;
+export type keyword_symbol = {
+    "type": "symbol",
     "value": string,
 } & tokenData;
 export type program = {

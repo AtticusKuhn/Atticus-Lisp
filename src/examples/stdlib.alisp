@@ -1,0 +1,6 @@
+(if a b c (compile "(c,y,n)=> {console.log('cyn is', c, z, n); return c ? z : n}"))
+(< a b (compile "(a,b)=>a < b"))
+(+ a b (compile "(a,b)=>a+b"))
+(- a b (compile "(a,b)=>a-b"))
+(if :true a b a)
+(if :false a b b)

@@ -23,6 +23,7 @@ const toVal = (x: any): value => {
     if (x?.type) return x;
     throw new Error(`cannot convert to value ${x} ${JSON.stringify(x)}`)
 }
+const isValue = (v: value): boolean => v.type !== "sExpression" && v.type !== "identifier"
 const evaluate = (exprToCall: sExpression, prog: program): value => {
     console.log(`calling ${JSON.stringify(exprToCall, null, 4)}`)
     // if(exprToCall)
@@ -32,7 +33,7 @@ const evaluate = (exprToCall: sExpression, prog: program): value => {
     } catch {
         return exprToCall;
     }
-    if (first.type === "string_literal" || first.type === "number_literal") return first
+    if (isValue(first)) return first
     const args = exprToCall.values.slice(1);
     if (first.type !== "identifier") throw new Error(`cannot call a non-identifier. I tried to call a ${first.type}. Debug info: ${JSON.stringify(first, null, 2)}`)
     const funcName = first.value

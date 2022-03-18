@@ -3,7 +3,7 @@
 (function () {
 function id(x) { return x[0]; }
 
-    const { lexer } = require("./dist/lexer")
+    const { lexer } = require("./dist/compiler/parser/lexer")
 
 function tokenStart(token) {
     return {
@@ -53,6 +53,7 @@ var grammar = {
     {"name": "value", "symbols": [(lexer.has("number_literal") ? {type: "number_literal"} : number_literal)], "postprocess": id},
     {"name": "value", "symbols": [(lexer.has("string_literal") ? {type: "string_literal"} : string_literal)], "postprocess": id},
     {"name": "value", "symbols": [(lexer.has("identifier") ? {type: "identifier"} : identifier)], "postprocess": id},
+    {"name": "value", "symbols": [(lexer.has("keyword_symbol") ? {type: "keyword_symbol"} : keyword_symbol)], "postprocess": id},
     {"name": "__ml$ebnf$1", "symbols": []},
     {"name": "__ml$ebnf$1", "symbols": ["__ml$ebnf$1", "multi_line_ws_char"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "__ml", "symbols": ["__ml$ebnf$1"]},

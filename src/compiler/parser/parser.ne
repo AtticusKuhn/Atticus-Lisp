@@ -1,5 +1,5 @@
 @{%
-    const { lexer } = require("./dist/lexer")
+    const { lexer } = require("./dist/compiler/parser/lexer")
 
 function tokenStart(token) {
     return {
@@ -50,7 +50,7 @@ value -> sExpression  {%id%}
     | %number_literal {%id%}
     | %string_literal {%id%}
     | %identifier {%id%}
-    | %symbol {%id%}
+    | %keyword_symbol {%id%}
 
 
 __ml -> multi_line_ws_char:*
@@ -58,8 +58,6 @@ _ml -> multi_line_ws_char:+
 
 multi_line_ws_char
     -> %ws
-    # |  "\n"
-    # | "\t"
     | %nl
 
 __ -> %ws:+
