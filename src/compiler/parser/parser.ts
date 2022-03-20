@@ -42,14 +42,14 @@ export type identifier = {
     "value": string,
 } & tokenData;
 export type keyword_symbol = {
-    "type": "symbol",
+    "type": "keyword_symbol",
     "value": string,
 } & tokenData;
 export type program = {
-    names: Map<string, func>,
+    names: Map<string, func[]>,
 }
 export type func = {
-    arguments: { name: string }[],
+    arguments: value[],
     body: value,
 }
 export function parse(code: string): AST {
@@ -67,7 +67,7 @@ export function parse(code: string): AST {
     return parser.results[0]
 }
 export const ASTtoProgram = (ast: AST): program => {
-    const map = new Map<string, func>();
+    const map = new Map<string, func[]>();
     ast.forEach((sExp) => {
         const first = sExp.values[0];
         if (first.type === "identifier") {
@@ -77,14 +77,15 @@ export const ASTtoProgram = (ast: AST): program => {
                         throw new Error(`function argument cannot be s expression. Argument was ${JSON.stringify(val, null, 4)} 
                         Expected val to be a value, val was actually ${val.type}`)
                     } else {
-                        return {
-                            name: val.text
-                        }
+                        return val;
+                        // return {
+                        //     name: val.text
+                        // }
                     }
                 }),
                 body: wrapWithS(sExp.values[sExp.values.length - 1])
             }
-            map.set(first.value, func)
+            map.set(first.value, (map.get(first.value) || []).concat(func));
         } else {
             throw new Error(`first element of sExpression must be identifier, got ${first.type}`)
         }
