@@ -1,5 +1,5 @@
-(< a b (compile "a < b"))
-(+ a b (compile "a+b"))
-(- a b (compile "a-b"))
+(< a b (compile "$a < $b"))
+(+ a b (compile "$a + $b"))
+(- a b (compile "$a - $b"))
 (if :true a b a)
 (if :false a b b)
