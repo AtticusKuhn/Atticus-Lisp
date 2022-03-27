@@ -3,7 +3,7 @@ import fs from "fs"
 const codeGenValueToJavascript = (value: value): string => {
     switch (value.type) {
         case "identifier":
-            return value.value
+            return `${value.value}`
         case "number_literal":
             return value.value.toString()
         case "sExpression":
@@ -12,15 +12,17 @@ const codeGenValueToJavascript = (value: value): string => {
             if (fst.type === "identifier") {
                 if (fst.value === "compile")
                     return codeGenValueToJavascript(rst[0]).replace(/\$([^\s]+)/g, (match) => {
-                        return `alispNamespace["${match.substring(1)}"]`
+                        return `strict(${match.substring(1)})`
                     })
-                return `alispNamespace["${fst.value}"]${rst.map(a => `(${codeGenValueToJavascript(a)})`).join("")}`
+                return `{type:"thunk", value: ()=> alispNamespace["${fst.value}"](${rst.map(a => `${codeGenValueToJavascript(a)}`).join(", ")}) } `
             } else {
                 return `[${value.values.map(codeGenValueToJavascript).join(", ")}]`
             }
         case "string_literal":
             return value.value
         case "keyword_symbol":
+            if (value.value === "true") return "true"
+            if (value.value === "false") return "false"
             return `Symbol("${value.value}")`
     }
 }
@@ -56,32 +58,29 @@ export const codegenToJavascript = (program: program): string => {
 const genPatternMatch = (value: value): string =>
     value.type === "identifier" ? `{type:"variable", value:"${value.value}"}`
         : value.type === "number_literal" ? value.value.toString()
-            : value.type === "keyword_symbol" ? `Symbol("${value.value}")`
+            : value.type === "keyword_symbol" ? (
+                value.value === "true" ? "true" :
+                    value.value === "false" ? "false" : `Symbol("${value.value}")`)
                 : value.type === "string_literal" ? `"${value.value}"`
                     : value.type === "sExpression" ? "idk"
                         : "idk2"
 const mapDefs = (func: func): string => {
-    return `.patternMatch([${func.arguments.map(genPatternMatch).join(", ")}], function(...args){
+    return `.patternMatch([${func.arguments.map(genPatternMatch).join(", ")}], function(${func.arguments.map(codeGenValueToJavascript).join(", ")}){
         return ${codeGenValueToJavascript(func.body)}
     })`
 }
 const codegenToJavascript2 = (program: program): string => {
     let main = ""
     for (const [name, funcs] of program.names.entries()) {
-        main += `alispNamespace["${name}"] = func() ${funcs.map(mapDefs).join("\n")};\n`
+        main += `alispNamespace["${name}"] = func() ${funcs.map(mapDefs).join("\n")}.build();\n`
     }
-    return `
-    const alispNamespace = {};
-    const func = ()=>{
-
-    }
-    ${main};`
+    return fs.readFileSync("./src/compiler/codegen/shell.js", "utf-8") + main
 }
 
 export const JSCodeGen = (soureCode: string): string => {
     const stdlib = fs.readFileSync("./src/examples/stdlib.alisp", "utf-8");
     const res = parse(stdlib + "\n" + soureCode)
     const program = ASTtoProgram(res)
-    return codegenToJavascript2(program) + `;             alispNamespace["main"]()
+    return codegenToJavascript2(program) + `;             console.log(strict(alispNamespace["main"]()));
     `
 }

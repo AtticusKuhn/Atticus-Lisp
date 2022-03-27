@@ -13,7 +13,7 @@ export const runCompiler = (soureCode: string): value => {
     return runProgram(program)
 }
 const main = () => {
-    const file = fs.readFileSync("./src/examples/conditionals.alisp", "utf-8")
+    const file = fs.readFileSync("./src/examples/recursion.alisp", "utf-8")
     fs.writeFileSync("./output.js", JSCodeGen(file))
     // console.log(runCompiler(file))
     // console.log(JSON.stringify(paredast, null, 4))

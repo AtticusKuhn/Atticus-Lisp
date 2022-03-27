@@ -42,26 +42,4 @@ const func = function () {
             }
         }
     }
-};const < = func() .patternMatch([{type:"variable", value:"a"}, {type:"variable", value:"b"}], function(a, b){
-        return strict(a) < strict(b)
-    }).build();
-const + = func() .patternMatch([{type:"variable", value:"a"}, {type:"variable", value:"b"}], function(a, b){
-        return strict(a) + strict(b)
-    }).build();
-const - = func() .patternMatch([{type:"variable", value:"a"}, {type:"variable", value:"b"}], function(a, b){
-        return strict(a) - strict(b)
-    }).build();
-const if = func() .patternMatch([true, {type:"variable", value:"a"}, {type:"variable", value:"b"}], function(true, a, b){
-        return {type:"thunk", value: ()=> a() } 
-    })
-.patternMatch([false, {type:"variable", value:"a"}, {type:"variable", value:"b"}], function(false, a, b){
-        return {type:"thunk", value: ()=> b() } 
-    }).build();
-const rec = func() .patternMatch([{type:"variable", value:"t"}], function(t){
-        return {type:"thunk", value: ()=> if({type:"thunk", value: ()=> <(t, 0) } , 0, {type:"thunk", value: ()=> +(1, {type:"thunk", value: ()=> rec({type:"thunk", value: ()=> -(t, 1) } ) } ) } ) } 
-    }).build();
-const main = func() .patternMatch([], function(){
-        return {type:"thunk", value: ()=> rec(2) } 
-    }).build();
-;             console.log(strict(alispNamespace["main"]()));
-    
+};
