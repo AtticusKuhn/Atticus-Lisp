@@ -83,7 +83,7 @@ export const ASTtoProgram = (ast: AST): program => {
                         // }
                     }
                 }),
-                body: wrapWithS(sExp.values[sExp.values.length - 1])
+                body: sExp.values[sExp.values.length - 1]
             }
             map.set(first.value, (map.get(first.value) || []).concat(func));
         } else {
