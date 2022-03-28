@@ -1,6 +1,5 @@
 const alispNamespace = {};
 const doesPatternMatch = (pattern, args) => {
-    console.log(`does`, pattern, ` match`, args)
     for (let i = 0; i < pattern.length; i++) {
         const p = pattern[i];
         let a = args[i];
@@ -10,11 +9,9 @@ const doesPatternMatch = (pattern, args) => {
             return false;
         }
         if (p !== a) {
-            console.log(p, "!==", a)
             return false;
         }
     }
-    console.log("matches!")
     return true
 }
 const strict = (thunk) =>
@@ -22,6 +19,15 @@ const strict = (thunk) =>
         ? strict(thunk.value())
         : thunk
 
+const curry = (fn) => {
+    const curried = (...args) => {
+        if (fn.length !== args.length) {
+            return curried.bind(null, ...args)
+        }
+        return fn(...args);
+    };
+    return curried;
+}
 const func = function () {
     let patterns = []
     return {
@@ -30,7 +36,7 @@ const func = function () {
             return this;
         },
         build: function () {
-            return (...args) => {
+            return curry((...args) => {
                 const matched = patterns.find(([p, _]) => doesPatternMatch(p, args));
                 if (matched === undefined) {
                     console.log(`no pattern matched among`, patterns)
@@ -39,35 +45,34 @@ const func = function () {
                 const [_, func] = matched
                 const res = func(...args)
                 return res
-            }
+            })
         }
     }
-};alispNamespace["<"] = func() .patternMatch([{type:"variable", value:"a"}, {type:"variable", value:"b"}], function(a, b){
-        return strict(a) < strict(b)
-    }).build();
-alispNamespace["+"] = func() .patternMatch([{type:"variable", value:"a"}, {type:"variable", value:"b"}], function(a, b){
-        return strict(a) + strict(b)
-    }).build();
-alispNamespace["-"] = func() .patternMatch([{type:"variable", value:"a"}, {type:"variable", value:"b"}], function(a, b){
-        return strict(a) - strict(b)
-    }).build();
-alispNamespace["if"] = func() .patternMatch([true, {type:"variable", value:"a"}, {type:"variable", value:"b"}], function(_, a, b){
-        return a
-    })
-.patternMatch([false, {type:"variable", value:"a"}, {type:"variable", value:"b"}], function(_, a, b){
+};
+alispNamespace["list"] = (...args) => args; alispNamespace["<"] = func().patternMatch([{ type: "variable", value: "a" }, { type: "variable", value: "b" }], function (a, b) {
+    return strict(a) < strict(b)
+}).build(); alispNamespace["<"] = func().patternMatch([{ type: "variable", value: "a" }, { type: "variable", value: "b" }], function (a, b) {
+    return strict(a) < strict(b)
+}).build();
+alispNamespace["+"] = func().patternMatch([{ type: "variable", value: "a" }, { type: "variable", value: "b" }], function (a, b) {
+    return strict(a) + strict(b)
+}).build();
+alispNamespace["-"] = func().patternMatch([{ type: "variable", value: "a" }, { type: "variable", value: "b" }], function (a, b) {
+    return strict(a) - strict(b)
+}).build();
+alispNamespace["map"] = func().patternMatch([{ type: "variable", value: "f" }, { type: "variable", value: "xs" }], function (f, xs) {
+    return strict(xs).map(strict(f))
+}).build();
+alispNamespace["if"] = func().patternMatch([true, { type: "variable", value: "a" }, { type: "variable", value: "b" }], function (_, a, b) {
+    return a
+})
+    .patternMatch([false, { type: "variable", value: "a" }, { type: "variable", value: "b" }], function (_, a, b) {
         return b
     }).build();
-alispNamespace["fib"] = func() .patternMatch([0], function(_){
-        return 0
-    })
-.patternMatch([1], function(_){
-        return 1
-    })
-.patternMatch([{type:"variable", value:"n"}], function(n){
-        return {type:"thunk", value: ()=> alispNamespace["+"]({type:"thunk", value: ()=> alispNamespace["fib"]({type:"thunk", value: ()=> alispNamespace["-"](n, 1) } ) } , {type:"thunk", value: ()=> alispNamespace["fib"]({type:"thunk", value: ()=> alispNamespace["-"](n, 2) } ) } ) } 
-    }).build();
-alispNamespace["main"] = func() .patternMatch([], function(){
-        return {type:"thunk", value: ()=> alispNamespace["fib"](10) } 
-    }).build();
-;             console.log(strict(alispNamespace["main"]()));
-    
+alispNamespace["myList"] = func().patternMatch([], function () {
+    return { type: "thunk", value: () => alispNamespace["list"](1, 2, 3, 4, 5) }
+}).build();
+alispNamespace["main"] = func().patternMatch([], function () {
+    return { type: "thunk", value: () => alispNamespace["map"]({ type: "thunk", value: () => alispNamespace["+"](1) })(alispNamespace["myList"]) }
+}).build();
+; console.log(strict(alispNamespace["main"]()));

@@ -17,7 +17,7 @@ const codeGenValueToJavascript = (value: value, args: value[]): string => {
                 if (args.some(x => x.type === "identifier" && x.value === fst.value)) {
                     return `{type:"thunk", value: ()=> ${fst.value} } `
                 }
-                return `{type:"thunk", value: ()=> alispNamespace["${fst.value}"](${rst.map(a => `${codeGenValueToJavascript(a, args)}`).join(", ")}) } `
+                return `{type:"thunk", value: ()=> alispNamespace["${fst.value}"](${rst.map(a => `(${codeGenValueToJavascript(a, args)})`).join("")}) } `
             } else {
                 return `[${value.values.map((x) => codeGenValueToJavascript(x, args)).join(", ")}]`
             }

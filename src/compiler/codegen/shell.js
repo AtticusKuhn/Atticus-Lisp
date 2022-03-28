@@ -1,6 +1,5 @@
 const alispNamespace = {};
 const doesPatternMatch = (pattern, args) => {
-    console.log(`does`, pattern, ` match`, args)
     for (let i = 0; i < pattern.length; i++) {
         const p = pattern[i];
         let a = args[i];
@@ -10,11 +9,9 @@ const doesPatternMatch = (pattern, args) => {
             return false;
         }
         if (p !== a) {
-            console.log(p, "!==", a)
             return false;
         }
     }
-    console.log("matches!")
     return true
 }
 const strict = (thunk) =>
@@ -22,6 +19,15 @@ const strict = (thunk) =>
         ? strict(thunk.value())
         : thunk
 
+const curry = (fn) => {
+    const curried = (...args) => {
+        if (fn.length !== args.length) {
+            return curried.bind(null, ...args)
+        }
+        return fn(...args);
+    };
+    return curried;
+}
 const func = function () {
     let patterns = []
     return {
@@ -30,7 +36,7 @@ const func = function () {
             return this;
         },
         build: function () {
-            return (...args) => {
+            return curry((...args) => {
                 const matched = patterns.find(([p, _]) => doesPatternMatch(p, args));
                 if (matched === undefined) {
                     console.log(`no pattern matched among`, patterns)
@@ -39,7 +45,10 @@ const func = function () {
                 const [_, func] = matched
                 const res = func(...args)
                 return res
-            }
+            })
         }
     }
 };
+alispNamespace["list"] = (...args) => args; alispNamespace["<"] = func().patternMatch([{ type: "variable", value: "a" }, { type: "variable", value: "b" }], function (a, b) {
+    return strict(a) < strict(b)
+}).build();

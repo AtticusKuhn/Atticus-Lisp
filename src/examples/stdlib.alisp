@@ -1,5 +1,7 @@
 (< a b (compile "$a < $b"))
 (+ a b (compile "$a + $b"))
 (- a b (compile "$a - $b"))
+(map f xs (compile "$xs.map(f)"))
+
 (if :true a b a)
 (if :false a b b)
